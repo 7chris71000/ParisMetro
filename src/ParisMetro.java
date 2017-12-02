@@ -16,7 +16,7 @@ public class ParisMetro {
 
 
     public ParisMetro( String file ) throws Exception{
-        sGraph = new AdjacencyMapGraph<String,Integer>(true);//this being false means that it is not directed
+        sGraph = new AdjacencyMapGraph<String,Integer>(true);//this being true means that it is directed
         readMetro(file);
     }
 
