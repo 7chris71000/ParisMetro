@@ -41,8 +41,7 @@ public class GraphAlgorithms {
    * As an outcome, this method adds newly discovered vertices (including u) to the known set,
    * and adds discovery graph edges to the forest.
    */
-  public static <V,E> void DFS(Graph<V,E> g, Vertex<V> u,
-                    Set<Vertex<V>> known, Map<Vertex<V>,Edge<E>> forest) {
+  public static <V,E> void DFS(Graph<V,E> g, Vertex<V> u, Set<Vertex<V>> known, Map<Vertex<V>,Edge<E>> forest) {
     known.add(u);                              // u has been discovered
     for (Edge<E> e : g.outgoingEdges(u)) {     // for every outgoing edge from u
       Vertex<V> v = g.opposite(u, e);
@@ -62,15 +61,25 @@ public class GraphAlgorithms {
    * @param v Vertex ending the path
    * @param forest must be a map that resulting from a previous call to DFS started at u.
    */
-  public static <V,E> PositionalList<Edge<E>>
-  constructPath(Graph<V,E> g, Vertex<V> u, Vertex<V> v,
-                Map<Vertex<V>,Edge<E>> forest) {
+  public static <V,E> PositionalList<Edge<E>> constructPath(Graph<V,E> g, Vertex<V> u, Vertex<V> v, Map<Vertex<V>,Edge<E>> forest) {
+
     PositionalList<Edge<E>> path = new LinkedPositionalList<>();
-    if (forest.get(v) != null) {           // v was discovered during the search
+
+    if (forest.get(v) != null) {// v was discovered during the search
+      System.out.println("gotHERE1");
       Vertex<V> walk = v;                  // we construct the path from back to front
       while (walk != u) {
+        System.out.println("gotHERE2");
         Edge<E> edge = forest.get(walk);
+        System.out.println("gotHERE3");
+        System.out.println(edge.getElement());
+
         path.addFirst(edge);               // add edge to *front* of path
+        System.out.println("gotHERE4");
+
+        System.out.println(walk.getElement());
+
+
         walk = g.opposite(walk, edge);     // repeat with opposite endpoint
       }
     }
@@ -213,7 +222,7 @@ public class GraphAlgorithms {
         d.put(v,0);
       else
         d.put(v, Integer.MAX_VALUE);
-      pqTokens.put(v, pq.insert(d.get(v), v));       // save entry for future updates
+      pqTokens.put(v, pq.insert(d.get(v), v));// save entry for future updates
     }
     // now begin adding reachable vertices to the cloud
     while (!pq.isEmpty()) {
