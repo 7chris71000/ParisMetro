@@ -51,6 +51,10 @@ public class ParisMetro {
                 String source = st.nextToken();
                 String dest = st.nextToken();
                 Integer weight = new Integer(st.nextToken());
+                //set all -1 paths (walking) to 90 since they will take 90 seconds to traverse
+                if(weight == -1){
+                    weight = 90;
+                }
                 Vertex<String> sv = vertices.get(source);
                 if (sv == null) {
                     // Source vertex not in graph -- insert
@@ -103,15 +107,15 @@ public class ParisMetro {
         throw new Exception("Vertex not in graph: " + vert);
     }
 
-    void printAllShortestDistances(String vert) throws Exception {
-        Vertex<String> vSource = getVertex(vert);
+    void printAllShortestDistances(String fromVert) throws Exception {
+        Vertex<String> vSource = getVertex(fromVert);
 
         GraphAlgorithms dj = new GraphAlgorithms();
         Map<Vertex<String>, Integer> result = dj.shortestPathLengths(sGraph, vSource);
 
         // Print shortest path to named cities
         for (Vertex<String> vGoal : sGraph.vertices()) {
-            if (vGoal.getElement().length() > 2) {
+            if (vGoal.getElement().length() > 0) {
                 System.out.println(vSource.getElement() + " to " + vGoal.getElement() + " = " + result.get(vGoal));
             }
         }
@@ -123,133 +127,56 @@ public class ParisMetro {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         return reader.readLine();
     }
-
-    //Copy pasted from graphsAlgorithms
-    public static <V,E> void DFS(Graph<V,E> g, Vertex<V> u, Set<Vertex<V>> known, Map<Vertex<V>,Edge<E>> forest) {
-        known.add(u);                              // u has been discovered
-        for (Edge<E> e : g.outgoingEdges(u)) {     // for every outgoing edge from u
-            Vertex<V> v = g.opposite(u, e);
-            if (!known.contains(v)) {
-                forest.put(v, e);                      // e is the tree edge that discovered v
-                DFS(g, v, known, forest);              // recursively explore from v
-            }
-        }
-    }
-
-    /**
-     * Returns an ordered list of edges comprising the directed path from u to v.
-     * If v is unreachable from u, or if u equals v, an empty path is returned.
-     *
-     * @param g Graph instance
-     * @param u Vertex beginning the path
-     * @param v Vertex ending the path
-     * @param forest must be a map that resulting from a previous call to DFS started at u.
-     */
-    public static <V,E> PositionalList<Edge<E>> constructPath(Graph<V,E> g, Vertex<V> u, Vertex<V> v, Map<Vertex<V>,Edge<E>> forest) {
-
-        PositionalList<Edge<E>> path = new LinkedPositionalList<>();
-
-        if (forest.get(v) != null) {// v was discovered during the search
-            System.out.println("gotHERE1");
-            Vertex<V> walk = v;                  // we construct the path from back to front
-            while (walk != u) {
-                System.out.println("gotHERE2");
-                Edge<E> edge = forest.get(walk);
-                System.out.println("gotHERE3");
-
-                path.addFirst(edge);               // add edge to *front* of path
-                System.out.println("gotHERE4");
-
-
-                try{
-                    walk = g.opposite(walk, edge);     // repeat with opposite endpoint
-                } catch (Exception e){
-                    System.out.println(e);
-                }
-                System.out.println(edge.getElement());
-                System.out.println(walk.getElement());
-            }
-        }
-        return path;
-    }
-
-    /**
-     * Performs DFS for the entire graph and returns the DFS forest as a map.
-     *
-     * @return map such that each nonroot vertex v is mapped to its discovery edge
-     * (vertices that are roots of a DFS trees in the forest are not included in the map).
-     */
-    public static <V,E> Map<Vertex<V>,Edge<E>> DFSComplete(Graph<V,E> g) {
-        Set<Vertex<V>> known = new HashSet<>();
-        Map<Vertex<V>,Edge<E>> forest = new ProbeHashMap<>();
-        for (Vertex<V> u : g.vertices())
-            if (!known.contains(u))
-                DFS(g, u, known, forest);            // (re)start the DFS process at u
-        return forest;
-    }
-
-
-    public static <V,E> void BFS(Graph<V,E> g, Vertex<V> s,
-                                 Set<Vertex<V>> known, Map<Vertex<V>,Edge<E>> forest) {
-        PositionalList<Vertex<V>> level = new LinkedPositionalList<>();
-        known.add(s);
-        level.addLast(s);                         // first level includes only s
-        while (!level.isEmpty()) {
-            PositionalList<Vertex<V>> nextLevel = new LinkedPositionalList<>();
-            for (Vertex<V> u : level)
-                for (Edge<E> e : g.outgoingEdges(u)) {
-                    Vertex<V> v = g.opposite(u, e);
-                    if (!known.contains(v)) {
-                        known.add(v);
-                        forest.put(v, e);                 // e is the tree edge that discovered v
-                        nextLevel.addLast(v);             // v will be further considered in next pass
-                    }
-                }
-            level = nextLevel;                      // relabel 'next' level to become the current
-        }
-    }
-
-    /**
-     * Performs BFS for the entire graph and returns the BFS forest as a map.
-     *
-     * @return map such that each nonroot vertex v is mapped to its discovery edge
-     * (vertices that are roots of a BFS trees in the forest are not included in the map).
-     */
-    public static <V,E> Map<Vertex<V>,Edge<E>> BFSComplete(Graph<V,E> g) {
-        Map<Vertex<V>,Edge<E>> forest = new ProbeHashMap<>();
-        Set<Vertex<V>> known = new HashSet<>();
-        for (Vertex<V> u : g.vertices())
-            if (!known.contains(u))
-                BFS(g, u, known, forest);
-        return forest;
-    }
-
-
-
-
-
-
     //this is to be used with 2i)
-    public static <V,E> PositionalList<Edge<E>> findPath(Graph<V,E> g,Vertex <V> u,Vertex<V> v) throws Exception{
+//    public static <V,E> PositionalList<Edge<E>> findPath(Graph<V,E> g,Vertex <V> u,Vertex<V> v) throws Exception{
+//        GraphAlgorithms graphAlgorithm = new GraphAlgorithms();
+//
+//        Map<Vertex<V>,Edge<E>> map = new ProbeHashMap<>();
+//
+//        try{
+//            map = DFSComplete(g);
+//        } catch (Exception f){
+//            System.out.print("test6");
+//        }
+//
+//        PositionalList<Edge<E>> positionalList = new LinkedPositionalList<>();
+//
+//        try{
+//            positionalList = graphAlgorithm.constructPath(g,u,v,map);
+//        } catch(Exception w){
+//            System.out.println(w);
+//        }
+//
+//
+//        return positionalList;
+//    }
 
-        Map<Vertex<V>,Edge<E>> map = new ProbeHashMap<>();
 
-        try{
-            map = DFSComplete(g);
-        } catch (Exception f){
-            System.out.print("test6");
+
+    public static <V> Set<Vertex<V>> DFS(Graph<V,Integer> g, Vertex<V> u, Set<Vertex<V>> known, Map<Vertex<V>,Edge<Integer>> forest) {
+        known.add(u);                              // u has been discovered
+        for (Edge<Integer> e : g.outgoingEdges(u)) {     // for every outgoing edge from u
+            Vertex<V> v = g.opposite(u, e);
+            int eLength = e.getElement();
+            if(eLength != 90){
+                if (!known.contains(v)) {
+                    forest.put(v, e);                      // e is the tree edge that discovered v
+                    DFS(g, v, known, forest);              // recursively explore from v
+                }
+            }
         }
+        return known;
+    }
 
-        PositionalList<Edge<E>> positionalList = new LinkedPositionalList<>();
+    public void findPath(Vertex<String> vertex){//this is a merged method inspired by datastructures GraphAlgorithms methods DFS, constructPath and completeDFS
+        Set<Vertex<String>> known = new HashSet<>();
+        Map<Vertex<String>,Edge<Integer>> forest = new ProbeHashMap<>();
+        Set<Vertex<String>> result = DFS(sGraph, vertex, known, forest);
 
-        try{
-            positionalList = constructPath(g,u,v,map);
-        } catch(Exception w){
-            System.out.println(w);
+        System.out.println("All Stations belonging to the same line of: "+vertex.getElement());
+        for(Vertex<String> s : result){
+            System.out.println(s.getElement());
         }
-
-
-        return positionalList;
     }
 
     public static void main(String[] args){
@@ -259,16 +186,17 @@ public class ParisMetro {
 //        }
         try{
             ParisMetro sGraph = new ParisMetro("metro.txt");
-            sGraph.print();
+//            sGraph.print();
             System.out.println("Source Vertex for shortest path: ");
-//            sGraph.printAllShortestDistances(readVertex());
+            sGraph.printAllShortestDistances(readVertex());
 
-            Vertex<String> u = vertices.get("134");
+            Vertex<String> u = vertices.get("1");
             Vertex<String> v = vertices.get("334");
-            System.out.println(u);
-            System.out.println(v);
+//            System.out.println(u);
+//            System.out.println(v);
 
-            System.out.println(findPath(sGraph.getsGraph(), u, v));
+//            System.out.println(sGraph.findPath(u));
+            sGraph.findPath(u);
 
 //            System.out.println(sGraph.toString());
 
